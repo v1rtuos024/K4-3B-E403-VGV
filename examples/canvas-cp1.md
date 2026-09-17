@@ -6,7 +6,7 @@ Canvas nộp ở CP1 theo scaffold `02-guide.md` §1.5 — mỗi dòng một ý,
 
 | # | Dòng | Nội dung |
 |---|---|---|
-| 1 | Track + đề | |
+| 1 | Track + đề |Track C - Đề 2 |
 | 2 | Job executor (ai · đang ở đâu · làm gì) | |
 | 3 | Pain một câu (ai – đang làm gì – vướng đâu – hậu quả) | |
 | 4 | 1–2 bằng chứng đầu (số + cách đếm + mã hội thoại/tin nhắn, hoặc khảo sát/phỏng vấn có số người) | |
