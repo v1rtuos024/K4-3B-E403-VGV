@@ -1,0 +1,35 @@
+services:
+  # 1. FastAPI Python Backend Service
+  - type: web
+    name: vlearn-spoken-qa-api
+    env: python
+    rootDir: codebase/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GEMINI_MODEL
+        value: gemini-3.7-flash
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # 2. Next.js Frontend Service
+  - type: web
+    name: vlearn-spoken-qa-frontend
+    env: node
+    rootDir: codebase/frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start -- -p $PORT
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20.14.0
+      - key: BACKEND_API_URL
+        fromService:
+          name: vlearn-spoken-qa-api
+          type: web
+          property: host
