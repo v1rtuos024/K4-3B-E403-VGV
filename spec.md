@@ -355,6 +355,11 @@ Trước khi phát triển bản hoàn chỉnh, nhóm đã so sánh hai phương
 | **21:00 18/9** | **CP4** | **Chốt đặc tả spec.md toàn diện (§1-§9); chốt Quality Bar 70%; hoàn thành chạy đo lường chính thức Lượt 1 (đạt 76.2% PASS); cập nhật kết quả vào `eval/results.csv` và `eval/eval_run_1.json`.** | **Hạn chốt spec của cuộc thi; hoàn thiện mọi tiêu chí nghiệm thu của rubric.** |
 
 ### 9.2 Báo Cáo Phần Còn Thiếu & Kế Hoạch Hoàn Thiện Tại CP5
+category_match trong code đánh giá tự động đang hardcode True, chưa map taxonomy C1–C5.
+Điều kiện PASS trong code đang lấy 4/5 (detection + 3/4 sub-criteria) thay vì bắt buộc đủ cả 5/5.
+Response API của backend chưa xuất riêng số đo false_positive_rate_clean mà mới chỉ xuất pass_rate toàn cục.
+Lỗi UI phần phát audio khi nhấn nhiều lần.
+Golden set còn yếu gây nhận diện sai.
 Nhóm tự rà soát và báo cáo trung thực các đầu việc chuẩn bị cho mốc nộp cuối (CP5 - 22:30 18/9):
 1. **Slide thuyết trình (`demo-slides.pdf`):** Đang thiết kế bộ slide chuẩn 6 trang bám sát cấu trúc hướng dẫn (`02-guide.md` §5.1), tích hợp các con số đo lường 76.2% thực tế và quote của chuyên gia.
 2. **Video demo dự phòng:** Đang quay video backup 60 giây ghi lại trọn vẹn flow chạy thực tế (phòng trường hợp mạng WiFi hội trường chập chờn khi demo live tại CP6).
