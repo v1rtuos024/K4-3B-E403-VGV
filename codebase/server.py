@@ -49,7 +49,7 @@ def review():
     prompt = SYSTEM + '\n\nKỊCH BẢN JSON:\n' + __import__('json').dumps(cleaned, ensure_ascii=False)
     try:
         client = genai.Client(api_key=key)
-        model_name = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+        model_name = os.getenv('GEMINI_MODEL', 'gemini-3.6-flash')
         response = client.models.generate_content(
             model=model_name,
             contents=prompt,
@@ -66,7 +66,7 @@ def review():
             if i.sentence_id not in valid_ids: continue
             if i.span and i.span not in text_by_id[i.sentence_id]: continue
             issues.append(i.model_dump())
-        return jsonify(issues=issues, model=os.getenv('GEMINI_MODEL','gemini-2.5-flash'))
+        return jsonify(issues=issues, model=model_name)
     except Exception as e:
         app.logger.exception('Gemini call failed')
         return jsonify(error=f'Gemini call thất bại: {type(e).__name__}: {e}'), 502
