@@ -74,6 +74,33 @@ const DEFAULT_PRESET_1: Sentence[] = [
   { id: 8, text: 'Hãy cùng bắt đầu nhé!' },
 ];
 
+/**
+ * Ensures suggestion is ALWAYS the complete rewritten sentence,
+ * never just an isolated term or replacement fragment.
+ */
+function resolveFullSuggestion(text: string, span?: string, suggest?: string): string {
+  if (!suggest) return text;
+  if (!span || !text.includes(span) || span.trim() === text.trim()) {
+    return suggest;
+  }
+
+  const spanIndex = text.indexOf(span);
+  const prefix = text.slice(0, spanIndex).trim();
+  const suffix = text.slice(spanIndex + span.length).trim();
+
+  // Check if suggest already contains surrounding context
+  const hasPrefix = Boolean(prefix && (prefix.length > 10 ? suggest.includes(prefix.slice(-10)) : suggest.includes(prefix)));
+  const hasSuffix = Boolean(suffix && (suffix.length > 10 ? suggest.includes(suffix.slice(0, 10)) : suggest.includes(suffix)));
+
+  // If there is surrounding context in text, but suggest doesn't contain either prefix or suffix,
+  // then suggest is only an isolated span/term replacement. Stitch it back into the full sentence!
+  if ((prefix.length > 0 || suffix.length > 0) && !hasPrefix && !hasSuffix) {
+    return text.replace(span, suggest);
+  }
+
+  return suggest;
+}
+
 export default function HomePage() {
   const [currentSidebarTab, setCurrentSidebarTab] = useState('qa');
   const [currentFlow, setCurrentFlow] = useState(1);
@@ -329,12 +356,16 @@ export default function HomePage() {
             safetyAlert: undefined,
           };
         }
+        const resolvedSuggest = issue.suggestion
+          ? resolveFullSuggestion(s.text, issue.span, issue.suggestion)
+          : undefined;
+
         return {
           ...s,
           type: labelType(issue.type),
           color: colorType(issue.type),
           reason: [issue.reason],
-          suggest: issue.suggestion,
+          suggest: resolvedSuggest,
           span: issue.span,
           severity: issue.severity,
           safetyAlert: issue.safety_alert,
@@ -411,20 +442,22 @@ export default function HomePage() {
 
     setDecisions((prev) => ({ ...prev, [selectedId]: type }));
 
-    if (type === 'accepted' && current.suggest) {
+    const rawSuggest = current.suggest || current.gold_suggest;
+    if (type === 'accepted' && rawSuggest) {
+      const finalText = resolveFullSuggestion(current.text, current.span || current.gold_span, rawSuggest);
       setAuditTrail((prev) => [
         ...prev,
         {
           id: current.id,
           type: current.type || 'Chỉnh sửa tối thiểu',
           original: current.text,
-          final: current.suggest!,
+          final: finalText,
           decision: 'ACCEPTED',
           timestamp: new Date().toLocaleTimeString(),
         },
       ]);
       setSentences((prev) =>
-        prev.map((s) => (s.id === selectedId ? { ...s, text: current.suggest! } : s))
+        prev.map((s) => (s.id === selectedId ? { ...s, text: finalText, suggest: finalText } : s))
       );
       showToast(`✓ Đã chấp nhận gợi ý sửa cho câu ${selectedId}.`);
     } else if (type === 'kept') {

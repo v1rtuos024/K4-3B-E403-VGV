@@ -51,8 +51,35 @@ Nguyên tắc bắt buộc:
 - Giữ nguyên kiến thức chuyên môn và giọng điệu của giảng viên.
 - Nếu câu nói tốt, trôi chảy thì KHÔNG tạo issue (kiểm soát False Positive = 0%).
 - span BẮT BUỘC phải là chuỗi con chính xác xuất hiện trong câu gốc.
+- suggestion BẮT BUỘC là NGUYÊN CÂU ĐẦY ĐỦ sau khi đã sửa đổi span (minimal diff). TUYỆT ĐỐI KHÔNG chỉ trả về mỗi từ/thuật ngữ thay thế. Ví dụ: câu gốc "Cần cấu hình prompt cho model.", span "prompt", thì suggestion PHẢI LÀ "Cần cấu hình câu lệnh prompt cho model.", TUYỆT ĐỐI KHÔNG được trả về mỗi "câu lệnh prompt".
 - BẮT BUỘC trả về JSON theo schema: {"issues": [{"sentence_id": int, "type": string, "span": string, "reason": string, "severity": "low"|"medium"|"high", "suggestion": string, "safety_alert": string|null}]}
 '''
+
+def normalize_full_sentence_suggestion(orig_text: str, span: str, suggestion: str) -> str:
+    """
+    Ensures that suggestion is ALWAYS the complete rewritten sentence,
+    never just an isolated term or replacement fragment.
+    """
+    if not suggestion:
+        return orig_text
+    if not orig_text or not span or span not in orig_text or span.strip() == orig_text.strip():
+        return suggestion
+
+    span_idx = orig_text.find(span)
+    prefix = orig_text[:span_idx].strip()
+    suffix = orig_text[span_idx + len(span):].strip()
+
+    # Check if suggestion already incorporates surrounding sentence context
+    has_prefix = bool(prefix and (prefix[-12:] in suggestion if len(prefix) > 12 else prefix in suggestion))
+    has_suffix = bool(suffix and (suffix[:12] in suggestion if len(suffix) > 12 else suffix in suggestion))
+
+    # If there is surrounding text but suggestion contains neither prefix nor suffix,
+    # it is an isolated fragment/term replacement. Stitch it back into the full sentence!
+    if (prefix or suffix) and not has_prefix and not has_suffix:
+        return orig_text.replace(span, suggestion, 1)
+
+    return suggestion
+
 
 AVAILABLE_PROVIDERS = {
     "gemini": {
@@ -129,13 +156,26 @@ def heuristic_analyze(sentences: List[dict]) -> List[dict]:
         eng_match = re.search(r'\b(prompt injection|semantic caching|embedding model|ReAct|LLM|API|MCP|agent|prompt)\b', text, re.IGNORECASE)
         if eng_match:
             term = eng_match.group(0)
+            term_phonetics = {
+                "prompt injection": "prompt injection (phiên âm: prõm-t in-dếch-sừn)",
+                "semantic caching": "semantic caching (lưu đệm ngữ nghĩa)",
+                "embedding model": "mô hình embedding",
+                "ReAct": "ReAct (mô hình suy luận và hành động)",
+                "LLM": "LLM (mô hình ngôn ngữ lớn)",
+                "API": "API (A-P-I)",
+                "MCP": "MCP (giao thức MCP)",
+                "agent": "agent (tác tử)",
+                "prompt": "câu lệnh prompt"
+            }
+            replacement = term_phonetics.get(term.lower(), f"{term} (phiên âm: {term})")
+            full_sugg = text.replace(term, replacement, 1)
             issues.append({
                 "sentence_id": sid,
                 "type": "TERM_PRONUNCIATION",
                 "span": term,
                 "reason": f"Thuật ngữ tiếng Anh '{term}' dễ gây vấp hoặc khiến TTS đọc rời từng ký tự.",
                 "severity": "medium",
-                "suggestion": f"{term} (phiên âm: {term})",
+                "suggestion": full_sugg,
                 "safety_alert": None
             })
             continue
@@ -359,13 +399,18 @@ async def analyze_sentences_multi_provider(
         raw_issues = heuristic_analyze(cleaned)
         used_model = f"{used_model} (Heuristic: {type(e).__name__})"
 
-    # Validate sentence_id and span
-    valid_ids = {x['id'] for x in cleaned}
+    # Validate sentence_id and ensure suggestion is the complete sentence
+    sentence_map = {x['id']: x.get('text', '') for x in cleaned}
     validated_issues = []
     for i in raw_issues:
         sid = i.get('sentence_id')
-        if sid not in valid_ids:
+        if sid not in sentence_map:
             continue
+        orig_text = sentence_map[sid]
+        span = i.get('span', '')
+        raw_sugg = i.get('suggestion', '')
+        if raw_sugg:
+            i['suggestion'] = normalize_full_sentence_suggestion(orig_text, span, raw_sugg)
         validated_issues.append(i)
 
     return {
