@@ -1,0 +1,404 @@
+{
+  "metadata": {
+    "title": "Vietnamese Spoken-Script QA Golden Set",
+    "version": "1.0",
+    "purpose": "CP3 evaluation",
+    "minimum_cases": 20,
+    "quality_bar": {
+      "overall_pass_rate": 0.70
+    },
+    "pass_definition": {
+      "error_case": [
+        "correct_detection",
+        "appropriate_span",
+        "correct_category",
+        "valid_explanation",
+        "minimal_meaning_preserving_suggestion"
+      ],
+      "clean_case": [
+        "correctly_identified_as_clean",
+        "no_unnecessary_edit"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "case_id": "GS001",
+      "source_file": "script_02.txt",
+      "sentence": "Cách tiếp cận ReAct cho mô hình viết các bước cân nhắc bằng lời xen với hành động, rồi dùng thông tin vừa nhận để điều chỉnh.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C1",
+      "gold_span": "cho mô hình viết các bước cân nhắc bằng lời",
+      "gold_reason": "Cách dùng từ \"viết các bước cân nhắc\" để diễn tả quá trình reasoning của AI nghe không tự nhiên và hơi gượng ép trong văn nói.",
+      "gold_suggestion": "giúp mô hình đưa ra suy luận bằng lời",
+      "severity": "medium",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_2",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS002",
+      "source_file": "script_04.txt",
+      "sentence": "Mình gắn bốn nhóm việc ấy với bốn tên trong sơ đồ: Nhận thức, Suy luận, Hành động và Trí nhớ.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C1",
+      "gold_span": "Nhận thức",
+      "gold_reason": "Dùng từ \"Nhận thức\" (Perception/Cognition) cho máy móc dễ gây cảm giác nhân cách hóa quá mức trong video kỹ thuật, nghe hơi chênh phô.",
+      "gold_suggestion": "Tiếp nhận",
+      "severity": "medium",
+      "confidence": "medium",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_4",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS003",
+      "source_file": "script_03.txt",
+      "sentence": "Ở cách thứ hai, ứng dụng kết nối với nơi cung cấp công cụ theo một quy ước chung, gọi là giao thức ngữ cảnh mô hình.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C2",
+      "gold_span": "giao thức ngữ cảnh mô hình",
+      "gold_reason": "Dịch word-by-word từ \"Model Context Protocol\", tạo ra một cụm danh từ rất cứng, mang đậm tính văn viết (translationese) khó nghe khi đọc.",
+      "gold_suggestion": "Giữ nguyên tiếng Anh \"Model Context Protocol\" hoặc \"giao thức MCP\"",
+      "severity": "medium",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_3",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS004",
+      "source_file": "script_03.txt",
+      "sentence": "Bên trong ứng dụng chủ có một phần chuyên gửi yêu cầu và nhận kết quả qua kết nối này, gọi là thành phần khách.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C2",
+      "gold_span": "thành phần khách",
+      "gold_reason": "Dịch nguyên xi \"client component\". Trong ngữ cảnh IT tiếng Việt, người nói hiếm khi dùng \"thành phần khách\", nghe rất hành chính.",
+      "gold_suggestion": "phần client hoặc client",
+      "severity": "medium",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_3",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS005",
+      "source_file": "script_05.txt",
+      "sentence": "Trong khóa học, mình gọi mức ba là tác tử phản ứng với yêu cầu, vì nó được giao xử lý việc Lan đang nhờ.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C2",
+      "gold_span": "tác tử phản ứng với yêu cầu",
+      "gold_reason": "Dịch trực tiếp từ \"reactive agent\". Cấu trúc cụm danh từ quá học thuật, kém tự nhiên cho một kịch bản thoại.",
+      "gold_suggestion": "agent có khả năng phản ứng",
+      "severity": "medium",
+      "confidence": "medium",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_5",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS006",
+      "source_file": "script_01.txt",
+      "sentence": "Nhận ra prompt injection, tức là người dùng giấu một câu ra lệnh trong nội dung gửi vào để model làm theo họ thay vì theo bạn, và biết cách phòng cơ bản.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C3",
+      "gold_span": "tức là người dùng giấu một câu ra lệnh trong nội dung gửi vào để model làm theo họ thay vì theo bạn, và biết cách phòng cơ bản.",
+      "gold_reason": "Câu chèn một mệnh đề giải thích rất dài ở giữa, sau đó lại tiếp nối bằng \"và biết cách phòng...\" khiến người đọc khó lấy hơi và người nghe dễ quên chủ ngữ đầu câu.",
+      "gold_suggestion": "Tách câu: \"...thay vì theo bạn. Qua đó, bạn cũng biết cách phòng thủ cơ bản.\"",
+      "severity": "medium",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_1",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS007",
+      "source_file": "script_06.txt",
+      "sentence": "Nhưng câu hạn nộp chưa tới mà em đã nộp xong cũng chứa cụm từ ấy, dù người học chỉ đang báo đã hoàn thành.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C3",
+      "gold_span": "câu hạn nộp chưa tới mà em đã nộp xong cũng chứa",
+      "gold_reason": "Việc trích dẫn nguyên một câu nói dài làm chủ ngữ mà không có dấu hiệu ngắt nhịp khiến luồng đọc bị rối, người nghe khó phân biệt đâu là trích dẫn, đâu là thành phần câu.",
+      "gold_suggestion": "Thêm từ đệm: \"Nhưng với câu nói 'hạn nộp chưa tới mà em đã nộp xong', nó cũng chứa cụm từ ấy...\"",
+      "severity": "medium",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_6",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS008",
+      "source_file": "script_04.txt",
+      "sentence": "Ứng dụng lấy phần cần dùng từ danh sách đó và gửi cho mô hình trước khi mô hình chọn bước tiếp theo.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C4",
+      "gold_span": "gửi cho mô hình trước khi mô hình",
+      "gold_reason": "Lặp từ \"mô hình\" ở khoảng cách quá gần gây lấn cấn khi đọc thành tiếng.",
+      "gold_suggestion": "gửi cho mô hình trước khi nó chọn...",
+      "severity": "low",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_4",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS009",
+      "source_file": "script_10.txt",
+      "sentence": "Nhóm tìm hiểu Lan đang vướng gì rồi chọn một khó khăn cần giải quyết. Sau đó, nhóm nghĩ ra nhiều cách giúp Lan rồi chọn cách để thử với học viên.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C4",
+      "gold_span": "rồi chọn một khó khăn cần giải quyết. Sau đó, nhóm nghĩ ra nhiều cách giúp Lan rồi chọn cách",
+      "gold_reason": "Cấu trúc câu lặp lại y hệt nhau ở hai câu liên tiếp tạo cảm giác đều đều, rập khuôn giống máy đọc.",
+      "gold_suggestion": "Đổi câu 2: \"...nghĩ ra nhiều cách giúp Lan và quyết định phương án để thử nghiệm...\"",
+      "severity": "medium",
+      "confidence": "medium",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_10",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS010",
+      "source_file": "script_01.txt",
+      "sentence": "Đây chính là ý nghĩa của nguyên tắc: specificity beats cleverness, tức cụ thể quan trọng hơn câu chữ cầu kỳ.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C5",
+      "gold_span": "specificity beats cleverness",
+      "gold_reason": "Hiện tượng code-switching chèn một cụm thành ngữ tiếng Anh dài vào giữa câu tiếng Việt làm gãy nhịp đọc và dễ gây lỗi phát âm hoặc làm TTS đọc sai.",
+      "gold_suggestion": "Đọc tiếng Việt trước, tiếng Anh để trên graphic, hoặc bỏ hẳn cụm tiếng Anh.",
+      "severity": "high",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_1",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS011",
+      "source_file": "script_09.txt",
+      "sentence": "Phần ba đặt câu hỏi: trí tuệ nhân tạo, hay AI, có thực sự giúp ích cho công việc ấy hay không.",
+      "gold_label": "NEEDS_REVISION",
+      "category": "C5",
+      "gold_span": "trí tuệ nhân tạo, hay AI,",
+      "gold_reason": "Cách viết đồng vị ngữ này tốt cho văn bản, nhưng khi đọc thành lời sẽ bị vụn và ngắt quãng không tự nhiên (\"phẩy, hay ai, phẩy\").",
+      "gold_suggestion": "Chỉ dùng một thuật ngữ: \"trí tuệ nhân tạo có thực sự...\" hoặc \"AI có thực sự...\"",
+      "severity": "low",
+      "confidence": "medium",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_9",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS012",
+      "source_file": "script_01.txt",
+      "sentence": "Rồi mình đi vào vòng lặp ReAct, và đọc trace để thấy agent đã nghĩ gì rồi làm gì.",
+      "gold_label": "PRONUNCIATION_ONLY",
+      "category": "PRONUNCIATION_ONLY",
+      "gold_span": "ReAct, trace",
+      "gold_reason": "Về ngữ pháp/ngữ nghĩa hoàn toàn bình thường, nhưng cần chú ý cách TTS hoặc người đọc phát âm đúng \"ReAct\" thay vì \"rì ắc\".",
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_1",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS013",
+      "source_file": "script_10.txt",
+      "sentence": "Hai lần mở rộng rồi thu hẹp như vậy được vẽ thành mô hình hai viên kim cương mà mình sẽ dùng trong bài.",
+      "gold_label": "UNCERTAIN",
+      "category": "C1",
+      "gold_span": "mô hình hai viên kim cương",
+      "gold_reason": "Thuật ngữ gốc \"Double Diamond\" thường được giữ nguyên trong giới thiết kế. Dịch ra tiếng Việt nghe hơi lạ tai, nhưng có thể chấp nhận trong bối cảnh bài giảng đại chúng.",
+      "gold_suggestion": null,
+      "severity": "low",
+      "confidence": "low",
+      "needs_human_review": true,
+      "provenance": {
+        "source": "old_video_script_10",
+        "screening_source": "Gemini_candidate",
+        "human_verified": false
+      }
+    },
+    {
+      "case_id": "GS014",
+      "source_file": "script_08.txt",
+      "sentence": "Đề nghị làm trợ lý hội thoại đã nói đến cách giải quyết, trong khi nhóm còn cần xác nhận vì sao Lan gặp khó khăn.",
+      "gold_label": "UNCERTAIN",
+      "category": "C1",
+      "gold_span": "đã nói đến cách giải quyết",
+      "gold_reason": "Cụm từ hơi thiếu sắc bén (có thể dùng \"mới chỉ là giải pháp bề mặt\"), nhưng vẫn đủ ý và tự nhiên khi đọc.",
+      "gold_suggestion": null,
+      "severity": "low",
+      "confidence": "low",
+      "needs_human_review": true,
+      "provenance": {
+        "source": "old_video_script_8",
+        "screening_source": "Gemini_candidate",
+        "human_verified": false
+      }
+    },
+    {
+      "case_id": "GS015",
+      "source_file": "script_01.txt",
+      "sentence": "Biết khi nào nên đưa vài ví dụ mẫu cho model bắt chước, khi nào nên bảo nó suy luận từng bước, và khi nào không cần cả hai.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_1",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS016",
+      "source_file": "script_02.txt",
+      "sentence": "Trong hệ thống tác tử này, mô hình chọn việc cần làm, còn ứng dụng kiểm tra và chạy công cụ đọc bài.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_2",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS017",
+      "source_file": "script_04.txt",
+      "sentence": "Nếu ứng dụng gửi lại câu Lan vừa nói lớp A, mô hình có thể dùng thông tin ấy để biết cần kiểm tra lớp nào.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_4",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS018",
+      "source_file": "script_05.txt",
+      "sentence": "Một câu trả lời được viết ra chưa cho biết ứng dụng đã mở và đọc hồ sơ bài nộp hay chưa.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_5",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS019",
+      "source_file": "script_07.txt",
+      "sentence": "Khi hệ thống tự hoàn thành phần việc trong giới hạn đã đặt như vậy, mình gọi đó là tự động hóa.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_7",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS020",
+      "source_file": "script_08.txt",
+      "sentence": "Học viên mới khó tìm đúng hướng dẫn cho lớp mình trước lần nộp bài đầu tiên, nên phải chờ hỗ trợ và hỏi lại.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_8",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    },
+    {
+      "case_id": "GS021",
+      "source_file": "script_10.txt",
+      "sentence": "Phương án thứ nhất là sắp xếp lại trang câu hỏi thường gặp theo công việc mà học viên muốn hoàn thành.",
+      "gold_label": "CLEAN",
+      "category": "C0",
+      "gold_span": null,
+      "gold_reason": null,
+      "gold_suggestion": null,
+      "severity": "none",
+      "confidence": "high",
+      "needs_human_review": false,
+      "provenance": {
+        "source": "old_video_script_10",
+        "screening_source": "Gemini_candidate",
+        "human_verified": true
+      }
+    }
+  ]
+}
