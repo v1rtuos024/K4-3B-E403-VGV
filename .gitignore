@@ -22,3 +22,5 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+codebase/frontend/.next/
+codebase/frontend/node_modules/
