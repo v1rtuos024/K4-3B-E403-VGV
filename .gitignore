@@ -1,6 +1,24 @@
-.DS_Store
-__pycache__/
+# Environment & Secrets
 .env
+.env.*
+!.env.example
+*.local
+
+# Node
 node_modules/
-tracks/
+npm-debug.log*
+
+# Data pack (Bảo mật hackathon - không commit lên GitHub)
 data/
+
+# Python & Venv
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
