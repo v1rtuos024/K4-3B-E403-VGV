@@ -58,10 +58,28 @@
         <button class='flowBtn' onclick='switchFlow(3)' id='flowBtn3'>3. Failure & Safety</button>
         <button class='flowBtn' onclick='switchFlow(4)' id='flowBtn4'>4. Correction (Sửa tay)</button>
         <button class='flowBtn' onclick='switchFlow(5)' id='flowBtn5'>5. Kịch bản sạch (False Positive)</button>
+        <button class='flowBtn' onclick='switchFlow(6)' id='flowBtn6' style='background:#7544ed;color:#fff;font-weight:700;border-color:#7544ed'>🎯 6. Golden Set Eval (21 Cases)</button>
+      <!-- Golden Set Evaluation Dashboard -->
+      <div id='evalDashboard' style='display:none;background:#f5f0ff;border:1px solid #d4c5f9;border-radius:10px;padding:12px 14px;margin-top:12px;'>
+        <div style='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;'>
+          <div>
+            <span style='font-weight:800;color:#6028d9;font-size:15px'>📊 Kết quả đo lường Lượt 1:</span>
+            <span style='background:#08a66c;color:#fff;padding:3px 8px;border-radius:6px;font-weight:800;font-size:13px;margin-left:8px'>16 / 21 PASS (76.2%)</span>
+            <span style='background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:6px;font-weight:700;font-size:12px;margin-left:6px'>Quality Bar: ≥70% (ĐẠT)</span>
+          </div>
+          <div style='display:flex;gap:6px;font-size:12px;'>
+            <button class='flowBtn active' onclick='filterEval("ALL")' id='fAll'>Tất cả (21)</button>
+            <button class='flowBtn' onclick='filterEval("PASS")' id='fPass' style='color:#08a66c'>✓ Đạt (16)</button>
+            <button class='flowBtn' onclick='filterEval("FAIL")' id='fFail' style='color:#ef4444'>✗ Chưa đạt (5)</button>
+            <button class='flowBtn' onclick='filterEval("CLEAN")' id='fClean'>Sạch C0 (7)</button>
+            <button class='flowBtn' onclick='filterEval("ERROR")' id='fErr'>Lỗi C1-C5 (14)</button>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class='toolbar'>
+  <div class='toolbar'>
       <span class='tab'>☷ Kịch bản</span>
       <span>▻ Chế độ xem video (preview)</span>
       <label><input id='only' type='checkbox' onchange='filterIssues()'> Chỉ hiển thị câu có lỗi</label>
@@ -88,6 +106,662 @@
 <script>
 // Dữ liệu mẫu 4 đường đi trải nghiệm chuẩn C2
 const flows = {
+  6: {
+    title: '🎯 Golden Set Evaluation — 21 Test Cases (Nhánh Giang)',
+    meta: '21 cases · Ground Truth chuẩn con người · Model: Gemini 3.7 Flash',
+    data: [
+  {
+    "id": 1,
+    "case_id": "GS001",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C1",
+    "text": "Cách tiếp cận ReAct cho mô hình viết các bước cân nhắc bằng lời xen với hành động, rồi dùng thông tin vừa nhận để điều chỉnh.",
+    "type": "C1 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "cho mô hình viết các bước cân nhắc bằng lời",
+    "gold_reason": "Cách dùng từ \"viết các bước cân nhắc\" để diễn tả quá trình reasoning của AI nghe không tự nhiên và hơi gượng ép trong văn nói.",
+    "gold_suggest": "giúp mô hình đưa ra suy luận bằng lời",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 1,
+      "type": "TERM_PRONUNCIATION",
+      "span": "ReAct",
+      "reason": "Thuật ngữ viết hoa kết hợp camel-case dễ khiến TTS đọc rời từng chữ cái hoặc phát âm sai chuẩn.",
+      "severity": "low",
+      "suggestion": "Re-Act (hoặc kèm chú thích phát âm /ri-ækt/)"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": false,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện TERM_PRONUNCIATION: \"ReAct\"",
+    "reason": [
+      "Thuật ngữ viết hoa kết hợp camel-case dễ khiến TTS đọc rời từng chữ cái hoặc phát âm sai chuẩn."
+    ],
+    "suggest": "Re-Act (hoặc kèm chú thích phát âm /ri-ækt/)"
+  },
+  {
+    "id": 2,
+    "case_id": "GS002",
+    "isGoldenSet": true,
+    "eval_status": "FAIL",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C1",
+    "text": "Mình gắn bốn nhóm việc ấy với bốn tên trong sơ đồ: Nhận thức, Suy luận, Hành động và Trí nhớ.",
+    "type": "C1 (NEEDS_REVISION)",
+    "color": "red",
+    "gold_span": "Nhận thức",
+    "gold_reason": "Dùng từ \"Nhận thức\" (Perception/Cognition) cho máy móc dễ gây cảm giác nhân cách hóa quá mức trong video kỹ thuật, nghe hơi chênh phô.",
+    "gold_suggest": "Tiếp nhận",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": false,
+      "span": false,
+      "category": false,
+      "explanation": false,
+      "suggestion": false
+    },
+    "notes": "Bỏ sót lỗi (False Negative)",
+    "reason": [
+      "Dùng từ \"Nhận thức\" (Perception/Cognition) cho máy móc dễ gây cảm giác nhân cách hóa quá mức trong video kỹ thuật, nghe hơi chênh phô."
+    ],
+    "suggest": "Tiếp nhận"
+  },
+  {
+    "id": 3,
+    "case_id": "GS003",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C2",
+    "text": "Ở cách thứ hai, ứng dụng kết nối với nơi cung cấp công cụ theo một quy ước chung, gọi là giao thức ngữ cảnh mô hình.",
+    "type": "C2 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "giao thức ngữ cảnh mô hình",
+    "gold_reason": "Dịch word-by-word từ \"Model Context Protocol\", tạo ra một cụm danh từ rất cứng, mang đậm tính văn viết (translationese) khó nghe khi đọc.",
+    "gold_suggest": "Giữ nguyên tiếng Anh \"Model Context Protocol\" hoặc \"giao thức MCP\"",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 3,
+      "type": "TRANSLATIONESE",
+      "span": "giao thức ngữ cảnh mô hình",
+      "reason": "Dịch từng từ từ 'Model Context Protocol' (MCP) nghe lạ tai, khó hiểu trong văn nói công nghệ.",
+      "severity": "medium",
+      "suggestion": "giao thức MCP (Model Context Protocol)"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện TRANSLATIONESE: \"giao thức ngữ cảnh mô hình\"",
+    "reason": [
+      "Dịch từng từ từ 'Model Context Protocol' (MCP) nghe lạ tai, khó hiểu trong văn nói công nghệ."
+    ],
+    "suggest": "giao thức MCP (Model Context Protocol)"
+  },
+  {
+    "id": 4,
+    "case_id": "GS004",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C2",
+    "text": "Bên trong ứng dụng chủ có một phần chuyên gửi yêu cầu và nhận kết quả qua kết nối này, gọi là thành phần khách.",
+    "type": "C2 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "thành phần khách",
+    "gold_reason": "Dịch nguyên xi \"client component\". Trong ngữ cảnh IT tiếng Việt, người nói hiếm khi dùng \"thành phần khách\", nghe rất hành chính.",
+    "gold_suggest": "phần client hoặc client",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 4,
+      "type": "TRANSLATIONESE",
+      "span": "thành phần khách",
+      "reason": "Dịch thô từ 'client' hoặc 'client component' sang 'thành phần khách' gây tối nghĩa và gượng gạo trong ngữ cảnh phần mềm.",
+      "severity": "medium",
+      "suggestion": "phía client"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện TRANSLATIONESE: \"thành phần khách\"",
+    "reason": [
+      "Dịch thô từ 'client' hoặc 'client component' sang 'thành phần khách' gây tối nghĩa và gượng gạo trong ngữ cảnh phần mềm."
+    ],
+    "suggest": "phía client"
+  },
+  {
+    "id": 5,
+    "case_id": "GS005",
+    "isGoldenSet": true,
+    "eval_status": "FAIL",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C2",
+    "text": "Trong khóa học, mình gọi mức ba là tác tử phản ứng với yêu cầu, vì nó được giao xử lý việc Lan đang nhờ.",
+    "type": "C2 (NEEDS_REVISION)",
+    "color": "red",
+    "gold_span": "tác tử phản ứng với yêu cầu",
+    "gold_reason": "Dịch trực tiếp từ \"reactive agent\". Cấu trúc cụm danh từ quá học thuật, kém tự nhiên cho một kịch bản thoại.",
+    "gold_suggest": "agent có khả năng phản ứng",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": false,
+      "span": false,
+      "category": false,
+      "explanation": false,
+      "suggestion": false
+    },
+    "notes": "Bỏ sót lỗi (False Negative)",
+    "reason": [
+      "Dịch trực tiếp từ \"reactive agent\". Cấu trúc cụm danh từ quá học thuật, kém tự nhiên cho một kịch bản thoại."
+    ],
+    "suggest": "agent có khả năng phản ứng"
+  },
+  {
+    "id": 6,
+    "case_id": "GS006",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C3",
+    "text": "Nhận ra prompt injection, tức là người dùng giấu một câu ra lệnh trong nội dung gửi vào để model làm theo họ thay vì theo bạn, và biết cách phòng cơ bản.",
+    "type": "C3 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "tức là người dùng giấu một câu ra lệnh trong nội dung gửi vào để model làm theo họ thay vì theo bạn, và biết cách phòng cơ bản.",
+    "gold_reason": "Câu chèn một mệnh đề giải thích rất dài ở giữa, sau đó lại tiếp nối bằng \"và biết cách phòng...\" khiến người đọc khó lấy hơi và người nghe dễ quên chủ ngữ đầu câu.",
+    "gold_suggest": "Tách câu: \"...thay vì theo bạn. Qua đó, bạn cũng biết cách phòng thủ cơ bản.\"",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 6,
+      "type": "TERM_PRONUNCIATION",
+      "span": "prompt injection",
+      "reason": "Cụm thuật ngữ tiếng Anh cần lưu ý phiên âm/ngắt nghỉ đúng để người nghe và TTS không đọc ngắt quãng.",
+      "severity": "low",
+      "suggestion": "prompt injection (promt in-jếch-sần)"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": false,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện TERM_PRONUNCIATION: \"prompt injection\"",
+    "reason": [
+      "Cụm thuật ngữ tiếng Anh cần lưu ý phiên âm/ngắt nghỉ đúng để người nghe và TTS không đọc ngắt quãng."
+    ],
+    "suggest": "prompt injection (promt in-jếch-sần)"
+  },
+  {
+    "id": 7,
+    "case_id": "GS007",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C3",
+    "text": "Nhưng câu hạn nộp chưa tới mà em đã nộp xong cũng chứa cụm từ ấy, dù người học chỉ đang báo đã hoàn thành.",
+    "type": "C3 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "câu hạn nộp chưa tới mà em đã nộp xong cũng chứa",
+    "gold_reason": "Việc trích dẫn nguyên một câu nói dài làm chủ ngữ mà không có dấu hiệu ngắt nhịp khiến luồng đọc bị rối, người nghe khó phân biệt đâu là trích dẫn, đâu là thành phần câu.",
+    "gold_suggest": "Thêm từ đệm: \"Nhưng với câu nói 'hạn nộp chưa tới mà em đã nộp xong', nó cũng chứa cụm từ ấy...\"",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 7,
+      "type": "AWKWARD_SPOKEN",
+      "span": "câu hạn nộp chưa tới mà em đã nộp xong",
+      "reason": "Chèn một mệnh đề trích dẫn trực tiếp vào giữa câu mà không có dấu trích dẫn hoặc từ nối, khiến người đọc dễ bị nuốt ý hoặc vấp ngữ điệu.",
+      "suggestion": "câu như 'hạn nộp chưa tới mà em đã nộp xong'"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": false,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện AWKWARD_SPOKEN: \"câu hạn nộp chưa tới mà em đã nộp xong\"",
+    "reason": [
+      "Chèn một mệnh đề trích dẫn trực tiếp vào giữa câu mà không có dấu trích dẫn hoặc từ nối, khiến người đọc dễ bị nuốt ý hoặc vấp ngữ điệu."
+    ],
+    "suggest": "câu như 'hạn nộp chưa tới mà em đã nộp xong'"
+  },
+  {
+    "id": 8,
+    "case_id": "GS008",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C4",
+    "text": "Ứng dụng lấy phần cần dùng từ danh sách đó và gửi cho mô hình trước khi mô hình chọn bước tiếp theo.",
+    "type": "C4 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "gửi cho mô hình trước khi mô hình",
+    "gold_reason": "Lặp từ \"mô hình\" ở khoảng cách quá gần gây lấn cấn khi đọc thành tiếng.",
+    "gold_suggest": "gửi cho mô hình trước khi nó chọn...",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 8,
+      "type": "REPETITION",
+      "span": "cho mô hình trước khi mô hình",
+      "reason": "Lặp lại từ 'mô hình' ở cự ly quá gần gây nặng nề khi đọc thành tiếng.",
+      "severity": "low",
+      "suggestion": "cho mô hình trước khi nó"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện REPETITION: \"cho mô hình trước khi mô hình\"",
+    "reason": [
+      "Lặp lại từ 'mô hình' ở cự ly quá gần gây nặng nề khi đọc thành tiếng."
+    ],
+    "suggest": "cho mô hình trước khi nó"
+  },
+  {
+    "id": 9,
+    "case_id": "GS009",
+    "isGoldenSet": true,
+    "eval_status": "FAIL",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C4",
+    "text": "Nhóm tìm hiểu Lan đang vướng gì rồi chọn một khó khăn cần giải quyết. Sau đó, nhóm nghĩ ra nhiều cách giúp Lan rồi chọn cách để thử với học viên.",
+    "type": "C4 (NEEDS_REVISION)",
+    "color": "red",
+    "gold_span": "rồi chọn một khó khăn cần giải quyết. Sau đó, nhóm nghĩ ra nhiều cách giúp Lan rồi chọn cách",
+    "gold_reason": "Cấu trúc câu lặp lại y hệt nhau ở hai câu liên tiếp tạo cảm giác đều đều, rập khuôn giống máy đọc.",
+    "gold_suggest": "Đổi câu 2: \"...nghĩ ra nhiều cách giúp Lan và quyết định phương án để thử nghiệm...\"",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": false,
+      "span": false,
+      "category": false,
+      "explanation": false,
+      "suggestion": false
+    },
+    "notes": "Bỏ sót lỗi (False Negative)",
+    "reason": [
+      "Cấu trúc câu lặp lại y hệt nhau ở hai câu liên tiếp tạo cảm giác đều đều, rập khuôn giống máy đọc."
+    ],
+    "suggest": "Đổi câu 2: \"...nghĩ ra nhiều cách giúp Lan và quyết định phương án để thử nghiệm...\""
+  },
+  {
+    "id": 10,
+    "case_id": "GS010",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C5",
+    "text": "Đây chính là ý nghĩa của nguyên tắc: specificity beats cleverness, tức cụ thể quan trọng hơn câu chữ cầu kỳ.",
+    "type": "C5 (NEEDS_REVISION)",
+    "color": "purple",
+    "gold_span": "specificity beats cleverness",
+    "gold_reason": "Hiện tượng code-switching chèn một cụm thành ngữ tiếng Anh dài vào giữa câu tiếng Việt làm gãy nhịp đọc và dễ gây lỗi phát âm hoặc làm TTS đọc sai.",
+    "gold_suggest": "Đọc tiếng Việt trước, tiếng Anh để trên graphic, hoặc bỏ hẳn cụm tiếng Anh.",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 10,
+      "type": "TERM_PRONUNCIATION",
+      "span": "specificity beats cleverness",
+      "reason": "Trích nguyên cụm khẩu hiệu tiếng Anh dài trong câu nói tiếng Việt có thể gây khó đọc liền mạch hoặc vấp với người thuyết trình/TTS.",
+      "severity": "medium",
+      "suggestion": "cụ thể quan trọng hơn khôn khéo (specificity beats cleverness)"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Phát hiện TERM_PRONUNCIATION: \"specificity beats cleverness\"",
+    "reason": [
+      "Trích nguyên cụm khẩu hiệu tiếng Anh dài trong câu nói tiếng Việt có thể gây khó đọc liền mạch hoặc vấp với người thuyết trình/TTS."
+    ],
+    "suggest": "cụ thể quan trọng hơn khôn khéo (specificity beats cleverness)"
+  },
+  {
+    "id": 11,
+    "case_id": "GS011",
+    "isGoldenSet": true,
+    "eval_status": "FAIL",
+    "gold_label": "NEEDS_REVISION",
+    "category": "C5",
+    "text": "Phần ba đặt câu hỏi: trí tuệ nhân tạo, hay AI, có thực sự giúp ích cho công việc ấy hay không.",
+    "type": "C5 (NEEDS_REVISION)",
+    "color": "red",
+    "gold_span": "trí tuệ nhân tạo, hay AI,",
+    "gold_reason": "Cách viết đồng vị ngữ này tốt cho văn bản, nhưng khi đọc thành lời sẽ bị vụn và ngắt quãng không tự nhiên (\"phẩy, hay ai, phẩy\").",
+    "gold_suggest": "Chỉ dùng một thuật ngữ: \"trí tuệ nhân tạo có thực sự...\" hoặc \"AI có thực sự...\"",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": false,
+      "span": false,
+      "category": false,
+      "explanation": false,
+      "suggestion": false
+    },
+    "notes": "Bỏ sót lỗi (False Negative)",
+    "reason": [
+      "Cách viết đồng vị ngữ này tốt cho văn bản, nhưng khi đọc thành lời sẽ bị vụn và ngắt quãng không tự nhiên (\"phẩy, hay ai, phẩy\")."
+    ],
+    "suggest": "Chỉ dùng một thuật ngữ: \"trí tuệ nhân tạo có thực sự...\" hoặc \"AI có thực sự...\""
+  },
+  {
+    "id": 12,
+    "case_id": "GS012",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "PRONUNCIATION_ONLY",
+    "category": "PRONUNCIATION_ONLY",
+    "text": "Rồi mình đi vào vòng lặp ReAct, và đọc trace để thấy agent đã nghĩ gì rồi làm gì.",
+    "type": "PRONUNCIATION_ONLY (PRONUNCIATION_ONLY)",
+    "color": "purple",
+    "gold_span": "ReAct, trace",
+    "gold_reason": "Về ngữ pháp/ngữ nghĩa hoàn toàn bình thường, nhưng cần chú ý cách TTS hoặc người đọc phát âm đúng \"ReAct\" thay vì \"rì ắc\".",
+    "gold_suggest": "",
+    "ai_label": "PRONUNCIATION_ONLY",
+    "ai_issue": {
+      "sentence_id": 12,
+      "type": "TERM_PRONUNCIATION",
+      "span": "ReAct, và đọc trace để thấy agent",
+      "reason": "Mật độ chèn từ mượn tiếng Anh dày đặc trong một vế câu (ReAct, trace, agent) dễ gây vấp khi thu âm.",
+      "severity": "medium",
+      "suggestion": "ReAct, rồi kiểm tra dấu vết hoạt động để thấy tác tử"
+    },
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Nhận diện đúng điểm cần lưu ý phát âm/thuật ngữ",
+    "reason": [
+      "Mật độ chèn từ mượn tiếng Anh dày đặc trong một vế câu (ReAct, trace, agent) dễ gây vấp khi thu âm."
+    ],
+    "suggest": "ReAct, rồi kiểm tra dấu vết hoạt động để thấy tác tử"
+  },
+  {
+    "id": 13,
+    "case_id": "GS013",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "UNCERTAIN",
+    "category": "C1",
+    "text": "Hai lần mở rộng rồi thu hẹp như vậy được vẽ thành mô hình hai viên kim cương mà mình sẽ dùng trong bài.",
+    "type": "C1 (UNCERTAIN)",
+    "color": "purple",
+    "gold_span": "mô hình hai viên kim cương",
+    "gold_reason": "Thuật ngữ gốc \"Double Diamond\" thường được giữ nguyên trong giới thiết kế. Dịch ra tiếng Việt nghe hơi lạ tai, nhưng có thể chấp nhận trong bối cảnh bài giảng đại chúng.",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Bỏ qua case UNCERTAIN - hợp lý vì câu văn phong chấp nhận được",
+    "reason": [
+      "Thuật ngữ gốc \"Double Diamond\" thường được giữ nguyên trong giới thiết kế. Dịch ra tiếng Việt nghe hơi lạ tai, nhưng có thể chấp nhận trong bối cảnh bài giảng đại chúng."
+    ],
+    "suggest": "Hai lần mở rộng rồi thu hẹp như vậy được vẽ thành mô hình hai viên kim cương mà mình sẽ dùng trong bài."
+  },
+  {
+    "id": 14,
+    "case_id": "GS014",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "UNCERTAIN",
+    "category": "C1",
+    "text": "Đề nghị làm trợ lý hội thoại đã nói đến cách giải quyết, trong khi nhóm còn cần xác nhận vì sao Lan gặp khó khăn.",
+    "type": "C1 (UNCERTAIN)",
+    "color": "purple",
+    "gold_span": "đã nói đến cách giải quyết",
+    "gold_reason": "Cụm từ hơi thiếu sắc bén (có thể dùng \"mới chỉ là giải pháp bề mặt\"), nhưng vẫn đủ ý và tự nhiên khi đọc.",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Bỏ qua case UNCERTAIN - hợp lý vì câu văn phong chấp nhận được",
+    "reason": [
+      "Cụm từ hơi thiếu sắc bén (có thể dùng \"mới chỉ là giải pháp bề mặt\"), nhưng vẫn đủ ý và tự nhiên khi đọc."
+    ],
+    "suggest": "Đề nghị làm trợ lý hội thoại đã nói đến cách giải quyết, trong khi nhóm còn cần xác nhận vì sao Lan gặp khó khăn."
+  },
+  {
+    "id": 15,
+    "case_id": "GS015",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Biết khi nào nên đưa vài ví dụ mẫu cho model bắt chước, khi nào nên bảo nó suy luận từng bước, và khi nào không cần cả hai.",
+    "type": "C0 (CLEAN)",
+    "color": "blue",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Chuẩn CLEAN - không tạo false positive",
+    "reason": [
+      "Câu văn bình thường, rõ nghĩa khi đọc thành lời."
+    ],
+    "suggest": "Biết khi nào nên đưa vài ví dụ mẫu cho model bắt chước, khi nào nên bảo nó suy luận từng bước, và khi nào không cần cả hai."
+  },
+  {
+    "id": 16,
+    "case_id": "GS016",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Trong hệ thống tác tử này, mô hình chọn việc cần làm, còn ứng dụng kiểm tra và chạy công cụ đọc bài.",
+    "type": "C0 (CLEAN)",
+    "color": "blue",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Chuẩn CLEAN - không tạo false positive",
+    "reason": [
+      "Câu văn bình thường, rõ nghĩa khi đọc thành lời."
+    ],
+    "suggest": "Trong hệ thống tác tử này, mô hình chọn việc cần làm, còn ứng dụng kiểm tra và chạy công cụ đọc bài."
+  },
+  {
+    "id": 17,
+    "case_id": "GS017",
+    "isGoldenSet": true,
+    "eval_status": "FAIL",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Nếu ứng dụng gửi lại câu Lan vừa nói lớp A, mô hình có thể dùng thông tin ấy để biết cần kiểm tra lớp nào.",
+    "type": "C0 (CLEAN)",
+    "color": "red",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "NEEDS_REVISION",
+    "ai_issue": {
+      "sentence_id": 17,
+      "type": "AWKWARD_SPOKEN",
+      "span": "câu Lan vừa nói lớp A",
+      "reason": "Thiếu từ nối giữa hành động 'nói' và nội dung trích dẫn 'lớp A', khiến mạch câu bị cộc khi đọc to.",
+      "severity": "low",
+      "suggestion": "câu Lan vừa nói là lớp A"
+    },
+    "criteria": {
+      "detection": false,
+      "span": false,
+      "category": false,
+      "explanation": false,
+      "suggestion": false
+    },
+    "notes": "False positive: AI bắt lỗi nhầm \"câu Lan vừa nói lớp A\" (Thiếu từ nối giữa hành động 'nói' và nội dung trích dẫn 'lớp A', khiến mạch câu bị cộc khi đọc to.)",
+    "reason": [
+      "Thiếu từ nối giữa hành động 'nói' và nội dung trích dẫn 'lớp A', khiến mạch câu bị cộc khi đọc to."
+    ],
+    "suggest": "câu Lan vừa nói là lớp A"
+  },
+  {
+    "id": 18,
+    "case_id": "GS018",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Một câu trả lời được viết ra chưa cho biết ứng dụng đã mở và đọc hồ sơ bài nộp hay chưa.",
+    "type": "C0 (CLEAN)",
+    "color": "blue",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Chuẩn CLEAN - không tạo false positive",
+    "reason": [
+      "Câu văn bình thường, rõ nghĩa khi đọc thành lời."
+    ],
+    "suggest": "Một câu trả lời được viết ra chưa cho biết ứng dụng đã mở và đọc hồ sơ bài nộp hay chưa."
+  },
+  {
+    "id": 19,
+    "case_id": "GS019",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Khi hệ thống tự hoàn thành phần việc trong giới hạn đã đặt như vậy, mình gọi đó là tự động hóa.",
+    "type": "C0 (CLEAN)",
+    "color": "blue",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Chuẩn CLEAN - không tạo false positive",
+    "reason": [
+      "Câu văn bình thường, rõ nghĩa khi đọc thành lời."
+    ],
+    "suggest": "Khi hệ thống tự hoàn thành phần việc trong giới hạn đã đặt như vậy, mình gọi đó là tự động hóa."
+  },
+  {
+    "id": 20,
+    "case_id": "GS020",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Học viên mới khó tìm đúng hướng dẫn cho lớp mình trước lần nộp bài đầu tiên, nên phải chờ hỗ trợ và hỏi lại.",
+    "type": "C0 (CLEAN)",
+    "color": "blue",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Chuẩn CLEAN - không tạo false positive",
+    "reason": [
+      "Câu văn bình thường, rõ nghĩa khi đọc thành lời."
+    ],
+    "suggest": "Học viên mới khó tìm đúng hướng dẫn cho lớp mình trước lần nộp bài đầu tiên, nên phải chờ hỗ trợ và hỏi lại."
+  },
+  {
+    "id": 21,
+    "case_id": "GS021",
+    "isGoldenSet": true,
+    "eval_status": "PASS",
+    "gold_label": "CLEAN",
+    "category": "C0",
+    "text": "Phương án thứ nhất là sắp xếp lại trang câu hỏi thường gặp theo công việc mà học viên muốn hoàn thành.",
+    "type": "C0 (CLEAN)",
+    "color": "blue",
+    "gold_span": "",
+    "gold_reason": "",
+    "gold_suggest": "",
+    "ai_label": "CLEAN",
+    "ai_issue": null,
+    "criteria": {
+      "detection": true,
+      "span": true,
+      "category": true,
+      "explanation": true,
+      "suggestion": true
+    },
+    "notes": "Chuẩn CLEAN - không tạo false positive",
+    "reason": [
+      "Câu văn bình thường, rõ nghĩa khi đọc thành lời."
+    ],
+    "suggest": "Phương án thứ nhất là sắp xếp lại trang câu hỏi thường gặp theo công việc mà học viên muốn hoàn thành."
+  }
+]
+  },
   1: {
     title: 'Kịch bản: D1 – Giới thiệu về AI trong học tập (Happy Path)',
     meta: '8 câu · ~2 phút · Happy Path',
@@ -150,7 +824,7 @@ let auditTrail = [];
 
 function switchFlow(flowId){
   currentFlow = flowId;
-  for(let i=1; i<=5; i++){
+  for(let i=1; i<=6; i++){
     const btn = document.getElementById('flowBtn'+i);
     if(btn) btn.classList.toggle('active', i===flowId);
   }
@@ -166,6 +840,8 @@ function switchFlow(flowId){
     ? `Đã phát hiện ${issueCount} vấn đề trong ${data.length} câu`
     : `✓ Không phát hiện vấn đề nào (Kiểm soát False Positive = 0%)`;
   document.getElementById('totalSentences').textContent = data.length;
+  const dash = document.getElementById('evalDashboard');
+  if(dash) dash.style.display = (flowId === 6) ? 'block' : 'none';
 }
 
 function render(){
@@ -177,6 +853,9 @@ function render(){
       badgeTag = `<span class="tag greenTag">✓ Đã duyệt</span>`;
     } else if(decisions[x.id]==='kept'){
       badgeTag = `<span class="tag grayTag">Giữ nguyên</span>`;
+    } else if(x.isGoldenSet){
+      const passTag = x.eval_status === 'PASS' ? '<span class="tag greenTag">PASS (76%)</span>' : '<span class="tag red">FAIL</span>';
+      badgeTag = `${passTag}<span style="font-size:10px;color:#555;display:block;margin-top:2px">${x.category}</span>`;
     } else if(x.type){
       const tClass = x.tag ? 'yellow' : (x.color==='purple'?'purpleTag':x.color);
       badgeTag = `<span class="tag ${tClass}">${x.tag||x.type}</span>`;
@@ -187,7 +866,7 @@ function render(){
     else if(x.type) hlClass = 'hl-'+x.color;
 
     return `<div class="row ${x.type?'issue-'+x.color:''} ${isSel?'activeRow':''}" data-id="${x.id}" data-issue="${!!x.type}" onclick="selectRow(${x.id})">
-      <div class="num">${x.id}</div>
+      <div class="num" style="${x.case_id?'font-size:11px;font-weight:700':''}">${x.case_id || x.id}</div>
       <div><span class="${hlClass}">${x.text}</span></div>
       <div>${badgeTag}</div>
     </div>`;
@@ -213,7 +892,63 @@ function showDetail(){
     return;
   }
 
-  if(!x.type){
+  if(x.isGoldenSet){
+    const isPass = x.eval_status === 'PASS';
+    const statusBox = isPass 
+      ? `<div class="panel green"><h4>✓ KẾT QUẢ TEST: PASS</h4>Đáp ứng tiêu chuẩn đánh giá Golden Set.</div>`
+      : `<div class="panel danger"><h4>✗ KẾT QUẢ TEST: FAIL</h4>${x.notes}</div>`;
+
+    const crit = x.criteria || {};
+    const criteriaHtml = `
+      <div class="panel" style="font-size:12px;background:#fcfaff">
+        <b>📋 Đánh giá 5 chiều chất lượng:</b>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
+          <span>• Nhận diện: <b>${crit.detection?'✓ ĐÚNG':'✗ SAI'}</b></span>
+          <span>• Khoanh vùng (Span): <b>${crit.span?'✓ ĐÚNG':'✗ SAI'}</b></span>
+          <span>• Phân loại: <b>${crit.category?'✓ ĐÚNG':'✗ SAI'}</b></span>
+          <span>• Giải thích: <b>${crit.explanation?'✓ ĐÚNG':'✗ SAI'}</b></span>
+          <span>• Gợi ý tối thiểu: <b>${crit.suggestion?'✓ ĐÚNG':'✗ SAI'}</b></span>
+        </div>
+      </div>
+    `;
+
+    const aiInfo = x.ai_issue ? `
+      <div class="panel" style="background:#eef6ff;border-color:#b9d9fe">
+        <b>🤖 AI phát hiện (${x.ai_issue.type}):</b><br>
+        • Span: <i>"${x.ai_issue.span}"</i><br>
+        • Lý do: ${x.ai_issue.reason}<br>
+        • Gợi ý sửa: <span class="suggest">${x.ai_issue.suggestion}</span>
+      </div>
+    ` : (x.ai_label==='CLEAN' ? '<div class="panel" style="background:#f0fff7"><b>🤖 AI nhận diện:</b> Câu sạch (CLEAN)</div>' : '');
+
+    const goldInfo = `
+      <div class="panel" style="background:#fffcf0;border-color:#fedf89">
+        <b>🏷️ Ground Truth (Chuẩn con người):</b><br>
+        • Nhãn: <b>${x.gold_label}</b> (${x.category})<br>
+        ${x.gold_span ? '• Span lỗi: <i>"'+x.gold_span+'"</i><br>' : ''}
+        ${x.gold_reason ? '• Lý do: '+x.gold_reason+'<br>' : ''}
+        ${x.gold_suggest ? '• Gợi ý chuẩn: <span class="suggest">'+x.gold_suggest+'</span>' : ''}
+      </div>
+    `;
+
+    d.innerHTML = `
+      ${statusBox}
+      <b>[${x.case_id}] Câu kịch bản test:</b>
+      <div class="panel">${x.text}</div>
+      ${criteriaHtml}
+      ${goldInfo}
+      ${aiInfo}
+      <button class="btn" style="background:#f4f8ff;border-color:#beddff;color:#1258dc;margin-bottom:10px;width:100%;font-weight:600" onclick="speakCurrent()">
+        🔊 Nghe thử (TTS): Câu gốc vs Gợi ý sửa
+      </button>
+      <div class="decision">
+        <button class="accept" onclick="decide('accepted')">✓ Chấp nhận gợi ý</button>
+        <button class="keep" onclick="decide('kept')">Giữ nguyên</button>
+      </div>
+    `;
+    return;
+  }
+    if(!x.type){
     d.innerHTML='<div class="panel green"><h4>✓ Không phát hiện vấn đề</h4>Câu này phù hợp với văn nói trong bài giảng, không bị sượng hay đứt hơi.</div>';
     return;
   }
@@ -421,6 +1156,20 @@ function exportReport(){
   a.download = `VLearn_QA_BaoCao_${Date.now()}.md`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+
+function filterEval(type){
+  ['fAll','fPass','fFail','fClean','fErr'].forEach(id=>{
+    const b=document.getElementById(id); if(b) b.classList.remove('active');
+  });
+  if(type==='ALL'){ document.getElementById('fAll')?.classList.add('active'); data = JSON.parse(JSON.stringify(flows[6].data)); }
+  if(type==='PASS'){ document.getElementById('fPass')?.classList.add('active'); data = flows[6].data.filter(x=>x.eval_status==='PASS'); }
+  if(type==='FAIL'){ document.getElementById('fFail')?.classList.add('active'); data = flows[6].data.filter(x=>x.eval_status==='FAIL'); }
+  if(type==='CLEAN'){ document.getElementById('fClean')?.classList.add('active'); data = flows[6].data.filter(x=>x.gold_label==='CLEAN'); }
+  if(type==='ERROR'){ document.getElementById('fErr')?.classList.add('active'); data = flows[6].data.filter(x=>x.gold_label!=='CLEAN'); }
+  selected = data[0]?.id || 1;
+  render();
 }
 
 // Chạy lần đầu
