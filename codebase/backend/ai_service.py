@@ -52,6 +52,7 @@ Nguyên tắc bắt buộc:
 - Nếu câu nói tốt, trôi chảy thì KHÔNG tạo issue (kiểm soát False Positive = 0%).
 - span BẮT BUỘC phải là chuỗi con chính xác xuất hiện trong câu gốc.
 - suggestion BẮT BUỘC là NGUYÊN CÂU ĐẦY ĐỦ sau khi đã sửa đổi span (minimal diff). TUYỆT ĐỐI KHÔNG chỉ trả về mỗi từ/thuật ngữ thay thế. Ví dụ: câu gốc "Cần cấu hình prompt cho model.", span "prompt", thì suggestion PHẢI LÀ "Cần cấu hình câu lệnh prompt cho model.", TUYỆT ĐỐI KHÔNG được trả về mỗi "câu lệnh prompt".
+- XỬ LÝ TOÀN BỘ CÁC THUẬT NGỮ TRONG CÂU: Nếu một câu có NHIỀU thuật ngữ tiếng Anh hoặc từ viết tắt (ví dụ: cả "prompt", "LLM", "API", "AI" trong cùng một câu, hoặc "semantic caching" và "embedding model"), BẮT BUỘC phải phát hiện và xử lý/phiên âm/chú thích ĐẦY ĐỦ TẤT CẢ các thuật ngữ đó trong cùng một `suggestion` cho câu đó. TUYỆT ĐỐI KHÔNG chỉ sửa 1 thuật ngữ đầu tiên mà bỏ quên các thuật ngữ còn lại trong câu.
 - BẮT BUỘC trả về JSON theo schema: {"issues": [{"sentence_id": int, "type": string, "span": string, "reason": string, "severity": "low"|"medium"|"high", "suggestion": string, "safety_alert": string|null}]}
 '''
 
@@ -80,6 +81,77 @@ def normalize_full_sentence_suggestion(orig_text: str, span: str, suggestion: st
 
     return suggestion
 
+def consolidate_sentence_issues(orig_text: str, issues: list) -> dict:
+    """
+    Consolidates multiple issues for the same sentence into a single comprehensive issue
+    so that ALL terms and points are covered in a single complete suggestion.
+    """
+    if not issues:
+        return {}
+    if len(issues) == 1:
+        i = issues[0]
+        span = i.get('span', '')
+        sugg = i.get('suggestion', '')
+        if sugg:
+            i['suggestion'] = normalize_full_sentence_suggestion(orig_text, span, sugg)
+        return i
+
+    # Combine spans
+    spans = [i.get('span', '').strip() for i in issues if i.get('span', '').strip()]
+    unique_spans = list(dict.fromkeys(spans))
+    
+    indices = [(orig_text.find(s), orig_text.find(s) + len(s)) for s in unique_spans if s in orig_text]
+    if indices:
+        min_start = min(s[0] for s in indices)
+        max_end = max(s[1] for s in indices)
+        if min_start >= 0 and max_end <= len(orig_text) and (max_end - min_start) <= 150:
+            combined_span = orig_text[min_start:max_end]
+        else:
+            combined_span = ", ".join(unique_spans)
+    else:
+        combined_span = ", ".join(unique_spans)
+
+    # Combine reasons
+    reasons = [i.get('reason', '').strip() for i in issues if i.get('reason', '').strip()]
+    unique_reasons = list(dict.fromkeys(reasons))
+    combined_reason = " • ".join(unique_reasons)
+
+    # Determine severity
+    sevs = [i.get('severity', 'medium') for i in issues]
+    combined_sev = "high" if "high" in sevs else ("medium" if "medium" in sevs else "low")
+
+    # Determine type
+    types = [i.get('type', '') for i in issues if i.get('type')]
+    combined_type = types[0] if types else "TERM_PRONUNCIATION"
+
+    # Start with orig_text and sequentially apply replacements
+    final_sugg = orig_text
+    for i in issues:
+        span = i.get('span', '').strip()
+        raw_sugg = i.get('suggestion', '').strip()
+        if not span or not raw_sugg:
+            continue
+        if len(raw_sugg) < len(orig_text) * 0.6:
+            if span in final_sugg:
+                final_sugg = final_sugg.replace(span, raw_sugg, 1)
+        else:
+            if final_sugg == orig_text:
+                final_sugg = raw_sugg
+
+    if final_sugg == orig_text:
+        final_sugg = max((i.get('suggestion', '') for i in issues), key=lambda s: len(s) if s != orig_text else 0, default=orig_text)
+
+    final_sugg = normalize_full_sentence_suggestion(orig_text, combined_span, final_sugg)
+
+    return {
+        "sentence_id": issues[0]['sentence_id'],
+        "type": combined_type,
+        "span": combined_span,
+        "reason": combined_reason,
+        "severity": combined_sev,
+        "suggestion": final_sugg,
+        "safety_alert": next((i.get('safety_alert') for i in issues if i.get('safety_alert')), None)
+    }
 
 AVAILABLE_PROVIDERS = {
     "gemini": {
@@ -152,28 +224,57 @@ def heuristic_analyze(sentences: List[dict]) -> List[dict]:
             })
             continue
 
-        # 2. TERM_PRONUNCIATION
-        eng_match = re.search(r'\b(prompt injection|semantic caching|embedding model|ReAct|LLM|API|MCP|agent|prompt)\b', text, re.IGNORECASE)
-        if eng_match:
-            term = eng_match.group(0)
+        # 2. TERM_PRONUNCIATION (Detect and fix ALL English terms in the sentence)
+        eng_terms_pattern = r'\b(prompt injection|semantic caching|embedding model|ReAct|LLM|API|MCP|agent|prompt|AI|TTS|MC|benchmark)\b'
+        matches = list(re.finditer(eng_terms_pattern, text, re.IGNORECASE))
+        if matches:
             term_phonetics = {
                 "prompt injection": "prompt injection (phiên âm: prõm-t in-dếch-sừn)",
-                "semantic caching": "semantic caching (lưu đệm ngữ nghĩa)",
-                "embedding model": "mô hình embedding",
-                "ReAct": "ReAct (mô hình suy luận và hành động)",
-                "LLM": "LLM (mô hình ngôn ngữ lớn)",
-                "API": "API (A-P-I)",
-                "MCP": "MCP (giao thức MCP)",
+                "semantic caching": "bộ nhớ đệm ngữ nghĩa (semantic caching)",
+                "embedding model": "mô hình nhúng (embedding model)",
+                "react": "ReAct (mô hình suy luận và hành động)",
+                "llm": "mô hình ngôn ngữ lớn (L-L-M)",
+                "api": "A-P-I",
+                "mcp": "giao thức MCP",
                 "agent": "agent (tác tử)",
-                "prompt": "câu lệnh prompt"
+                "prompt": "câu lệnh prompt",
+                "ai": "trí tuệ nhân tạo (AI)",
+                "tts": "giọng đọc nhân tạo (T-T-S)",
+                "mc": "người dẫn (M-C)",
+                "benchmark": "bộ tiêu chuẩn (benchmark)"
             }
-            replacement = term_phonetics.get(term.lower(), f"{term} (phiên âm: {term})")
-            full_sugg = text.replace(term, replacement, 1)
+            # Collect unique matched terms preserving order of appearance
+            matched_terms = []
+            seen = set()
+            for m in matches:
+                t = m.group(0)
+                if t.lower() not in seen:
+                    matched_terms.append(t)
+                    seen.add(t.lower())
+
+            # Replace ALL terms in text, sorting by length descending to prevent substring collisions
+            full_sugg = text
+            for t in sorted(matched_terms, key=len, reverse=True):
+                rep = term_phonetics.get(t.lower(), f"{t} (phiên âm: {t})")
+                full_sugg = re.sub(rf'\b{re.escape(t)}\b', rep, full_sugg)
+
+            first_m = matches[0]
+            last_m = matches[-1]
+            if len(matches) > 1 and (last_m.end() - first_m.start()) <= 120:
+                span = text[first_m.start():last_m.end()]
+            else:
+                span = ", ".join(matched_terms)
+
+            if len(matched_terms) > 1:
+                reason = f"Chứa nhiều thuật ngữ/từ viết tắt tiếng Anh ({', '.join(matched_terms)}) dễ khiến MC/TTS đọc vấp hoặc rời rạc từng ký tự nếu thiếu phiên âm."
+            else:
+                reason = f"Thuật ngữ tiếng Anh '{matched_terms[0]}' dễ gây vấp hoặc khiến TTS đọc rời từng ký tự."
+
             issues.append({
                 "sentence_id": sid,
                 "type": "TERM_PRONUNCIATION",
-                "span": term,
-                "reason": f"Thuật ngữ tiếng Anh '{term}' dễ gây vấp hoặc khiến TTS đọc rời từng ký tự.",
+                "span": span,
+                "reason": reason,
                 "severity": "medium",
                 "suggestion": full_sugg,
                 "safety_alert": None
@@ -399,19 +500,21 @@ async def analyze_sentences_multi_provider(
         raw_issues = heuristic_analyze(cleaned)
         used_model = f"{used_model} (Heuristic: {type(e).__name__})"
 
-    # Validate sentence_id and ensure suggestion is the complete sentence
+    # Group issues by sentence_id and consolidate multiple issues/terms
     sentence_map = {x['id']: x.get('text', '') for x in cleaned}
-    validated_issues = []
+    issues_by_sid = {}
     for i in raw_issues:
         sid = i.get('sentence_id')
         if sid not in sentence_map:
             continue
+        issues_by_sid.setdefault(sid, []).append(i)
+
+    validated_issues = []
+    for sid, group in issues_by_sid.items():
         orig_text = sentence_map[sid]
-        span = i.get('span', '')
-        raw_sugg = i.get('suggestion', '')
-        if raw_sugg:
-            i['suggestion'] = normalize_full_sentence_suggestion(orig_text, span, raw_sugg)
-        validated_issues.append(i)
+        consolidated = consolidate_sentence_issues(orig_text, group)
+        if consolidated:
+            validated_issues.append(consolidated)
 
     return {
         "issues": validated_issues,

@@ -360,11 +360,17 @@ export default function HomePage() {
           ? resolveFullSuggestion(s.text, issue.span, issue.suggestion)
           : undefined;
 
+        const reasonsList = issue.reason
+          ? (typeof issue.reason === 'string' && issue.reason.includes(' • ')
+              ? issue.reason.split(' • ')
+              : Array.isArray(issue.reason) ? issue.reason : [issue.reason])
+          : undefined;
+
         return {
           ...s,
           type: labelType(issue.type),
           color: colorType(issue.type),
-          reason: [issue.reason],
+          reason: reasonsList,
           suggest: resolvedSuggest,
           span: issue.span,
           severity: issue.severity,
